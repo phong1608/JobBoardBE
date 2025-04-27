@@ -217,7 +217,7 @@ namespace JobBoard.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("JobBoard.Models.JobApplication", b =>

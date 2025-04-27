@@ -1,4 +1,5 @@
-﻿using BCrypt.Net;
+﻿using Authenticate.API.IService;
+using BCrypt.Net;
 using JobBoard.Data;
 using JobBoard.Dtos;
 using JobBoard.Models;
@@ -14,11 +15,13 @@ namespace JobBoard.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly JwtTokenGenerator _jwtTokenGenerator;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, JwtTokenGenerator jwtTokenGenerator)
         {
             _context = context;
             _configuration = configuration;
+            _jwtTokenGenerator = jwtTokenGenerator;
         }
 
         public async Task<User> RegisterAsync(UserRegisterDto dto)
@@ -47,14 +50,12 @@ namespace JobBoard.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
                 throw new Exception("Invalid credentials");
 
-            // Tạo JWT token (triển khai thực tế cần phức tạp hơn)
             return GenerateJwtToken(user);
         }
 
         private string GenerateJwtToken(User user)
         {
-            // Triển khai logic tạo token ở đây
-            return "generated_jwt_token";
+            return _jwtTokenGenerator.CreateJwtToken(user,user.UserType);
         }
     }
 }
