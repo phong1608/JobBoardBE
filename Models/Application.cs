@@ -10,5 +10,6 @@
         public DateTime ApplicationDate { get; set; }
         public int JobListingId { get; set; }
         public JobListing JobListing { get; set; } = null!;
+        public required string Status { get; set; }
     }
 }
