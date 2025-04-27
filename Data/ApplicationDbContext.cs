@@ -1,7 +1,9 @@
 ﻿using JobBoard.Models;
 using JobBoard.Models.Identity;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace JobBoard.Data
 {
@@ -14,7 +16,9 @@ namespace JobBoard.Data
         public DbSet<JobListing> JobListings { get; set; }
         public DbSet<SavedJob> SavedJobs { get; set; }
         public DbSet<Application> Applications { get; set; } = null!;
-       
+        public DbSet<User> Users { get; set; }
+        public DbSet<Job> Jobs { get; set; }
+        public DbSet<Company> Companies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +27,15 @@ namespace JobBoard.Data
             modelBuilder.Entity<SavedJob>().ToTable("SavedJobs");
             modelBuilder.Entity<JobListing>().ToTable("JobListings");
             modelBuilder.Entity<Application>().ToTable("Applications");
+            modelBuilder.Entity<Job>().ToTable("Jobs");
+            modelBuilder.Entity<User>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd(); 
+
+            modelBuilder.Entity<JobApplication>()
+                .HasOne(a => a.Candidate)
+                .WithMany()
+                .HasForeignKey(a => a.CandidateId);
 
         }
     }
