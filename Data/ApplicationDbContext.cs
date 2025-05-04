@@ -18,7 +18,6 @@ namespace JobBoard.Data
         public DbSet<Application> Applications { get; set; } = null!;
         public DbSet<User> Users { get; set; }
         public DbSet<Job> Jobs { get; set; }
-        public DbSet<Company> Companies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,10 +31,17 @@ namespace JobBoard.Data
                 .Property(u => u.Id)
                 .ValueGeneratedOnAdd(); 
 
-            modelBuilder.Entity<JobApplication>()
-                .HasOne(a => a.Candidate)
+            modelBuilder.Entity<Application>()
+                .HasOne(a => a.Applicant)
                 .WithMany()
-                .HasForeignKey(a => a.CandidateId);
+                .HasForeignKey(a => a.ApplicantId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<Job>()
+                .HasOne(a => a.Employer)
+                .WithMany()
+                .HasForeignKey(a => a.EmployerId)
+                .OnDelete(DeleteBehavior.Restrict); 
 
         }
     }

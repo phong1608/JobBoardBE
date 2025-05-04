@@ -18,8 +18,10 @@ namespace JobBoard.API.Controllers
         }
 
         [HttpPost]
+        [Consumes("multipart/form-data")]
+
         [Authorize(Roles = "Candidate")]
-        public async Task<IActionResult> CreateApplication([FromBody] ApplicationCreateDto dto)
+        public async Task<IActionResult> CreateApplication([FromForm] ApplicationCreateDto dto)
         {
             var candidateId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var application = await _applicationService.CreateApplicationAsync(dto, candidateId);
@@ -34,7 +36,22 @@ namespace JobBoard.API.Controllers
             var applications = await _applicationService.GetApplicationsAsync(jobId, employerId);
             return Ok(applications);
         }
-
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetUserApplication([FromQuery] int? jobId)
+        {
+            var employerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var applications = await _applicationService.GetUserApplication(employerId);
+            return Ok(applications);
+        }
+        [HttpGet("employer")]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> GetApplicationByEmployer([FromQuery] int? jobId)
+        {
+            var employerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var applications = await _applicationService.GetApplicationByEmployer(employerId);
+            return Ok(applications);
+        }
         [HttpPut("{id}")]
         [Authorize(Roles = "Employer")]
         public async Task<IActionResult> UpdateApplication(int id, [FromBody] ApplicationUpdateDto dto)
@@ -44,5 +61,6 @@ namespace JobBoard.API.Controllers
             if (!updated) return NotFound();
             return NoContent();
         }
+
     }
 }

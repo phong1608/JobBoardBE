@@ -2,6 +2,8 @@
 using JobBoard.Data;
 using JobBoard.Data.Interceptors;
 using JobBoard.Services;
+using JobBoard.Settings;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -25,18 +27,32 @@ builder.Services.AddCors(options =>
                          .AllowCredentials()); // nếu cần gửi cookie, token
 });
 
+builder.Services.Configure<CloudinarySetting>(
+    builder.Configuration.GetSection("CloudinarySettings"));
 // Các service khác
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JobService>();
+builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+builder.Logging.AddConsole(); // Hiện log trong console
+
 builder.Services.AddAuthentication(options =>
 {
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddCookie(x =>
+{
+    x.Cookie.Name = "access_token";
 })
 .AddJwtBearer(options =>
 {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -49,7 +65,26 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
 
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Cookies["access_token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
 });
+builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

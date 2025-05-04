@@ -6,5 +6,6 @@ namespace JobBoard.Dtos
         public string Description { get; set; }
         public string Location { get; set; }
         public string Salary { get; set; }
+        public int EmployerId { get; set; }
     }
 }

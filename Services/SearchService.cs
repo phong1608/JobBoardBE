@@ -15,7 +15,7 @@ namespace JobBoard.Services
 
         public async Task<List<Job>> SearchJobsAsync(string? keyword, string? location, string? skill)
         {
-            var query = _context.Jobs.Include(j => j.Company).AsQueryable();
+            var query = _context.Jobs.Include(j => j.Employer).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
                 query = query.Where(j => j.Title.Contains(keyword) || j.Description.Contains(keyword));

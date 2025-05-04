@@ -24,22 +24,20 @@ namespace JobBoard.Services
             if (!string.IsNullOrEmpty(keyword))
                 query = query.Where(j => j.Title.Contains(keyword) || j.Description.Contains(keyword));
 
-            var jobs = await query.Include(j => j.Company).ToListAsync();
+            var jobs = await query.Include(j => j.Employer).ToListAsync();
 
-            // Lọc salaryMin trong bộ nhớ
             if (salaryMin.HasValue)
             {
                 jobs = jobs.Where(j =>
                 {
                     try
                     {
-                        // Lấy phần đầu tiên của Salary (min) và parse thành int
                         var salaryMinValue = int.Parse(j.Salary.Split('-')[0].Trim());
                         return salaryMinValue >= salaryMin.Value;
                     }
                     catch
                     {
-                        return false; // Bỏ qua nếu không parse được
+                        return false; 
                     }
                 }).ToList();
             }
@@ -49,8 +47,12 @@ namespace JobBoard.Services
 
         public async Task<Job> GetJobByIdAsync(int id)
         {
-            return await _context.Jobs.Include(j => j.Company).FirstOrDefaultAsync(j => j.Id == id)
+            return await _context.Jobs.Include(j => j.Employer).FirstOrDefaultAsync(j => j.Id == id)
                 ?? throw new Exception("Job not found");
+        }
+        public async Task<List<Job>> GetJobByEmployerId(int employerId)
+        {
+            return await _context.Jobs.Where(j=>j.EmployerId == employerId).ToListAsync();
         }
 
         public async Task<Job> CreateJobAsync(JobCreateDto dto, int employerId)
@@ -65,6 +67,7 @@ namespace JobBoard.Services
                 Description = dto.Description,
                 Location = dto.Location,
                 Salary = dto.Salary,
+                Employer = employer,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

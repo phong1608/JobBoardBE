@@ -30,7 +30,14 @@ namespace JobBoard.Controllers
             var job = await _jobService.GetJobByIdAsync(id);
             return Ok(job);
         }
+        [HttpGet("me")]
+        public async Task<IActionResult> GetEmployerJob()
+        {
+            var employerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
+            var job = await _jobService.GetJobByEmployerId(employerId);
+            return Ok(job);
+        }
         [HttpPost]
         [Authorize(Roles = "Employer")]
         public async Task<IActionResult> CreateJob([FromBody] JobCreateDto dto)

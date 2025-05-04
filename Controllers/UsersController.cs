@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using JobBoard.Services;
 using JobBoard.Dtos;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace JobBoard.Controllers
 {
@@ -30,11 +32,18 @@ namespace JobBoard.Controllers
         public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
         {
             var token = await _authService.LoginAsync(dto);
+            Response.Cookies.Append("access_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, 
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
             return Ok(new { Token = token });
         }
 
-        [HttpGet("profile")]
         [Authorize]
+        [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
@@ -43,12 +52,26 @@ namespace JobBoard.Controllers
         }
 
         [HttpPut("profile")]
-        [Authorize]
+
         public async Task<IActionResult> UpdateProfile([FromBody] string profileDetails)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var user = await _userService.UpdateProfileAsync(userId, profileDetails);
             return Ok(user);
+        }
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+      
+            Response.Cookies.Append("access_token", "", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(-1) 
+            });
+
+            return Ok(new { message = "Logged out successfully" });
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Authenticate.API.IService;
+using Azure;
 using BCrypt.Net;
 using JobBoard.Data;
 using JobBoard.Dtos;
@@ -50,7 +51,10 @@ namespace JobBoard.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
                 throw new Exception("Invalid credentials");
 
-            return GenerateJwtToken(user);
+
+
+            var token = GenerateJwtToken(user);
+            return token;
         }
 
         private string GenerateJwtToken(User user)

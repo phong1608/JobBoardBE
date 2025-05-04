@@ -38,7 +38,7 @@ namespace JobBoard.API.Controllers
         [HttpGet("jobs")]
         public async Task<IActionResult> GetJobs()
         {
-            var jobs = await _context.Jobs.Include(j => j.Company).ToListAsync();
+            var jobs = await _context.Jobs.Include(j => j.Employer).ToListAsync();
             return Ok(jobs);
         }
 
